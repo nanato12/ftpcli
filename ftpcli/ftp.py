@@ -46,7 +46,7 @@ class FTP(object):
                 self.ftp.storbinary("STOR {}".format(file_name), fp)
                 fp.close()
                 self.set_dir()
-                print('upload: [Success] {}'.format(self.pwd() + file_name))
+                print('upload: [Success] {}'.format(self.current() + file_name))
         else:
             print('upload: [Error] {}'.format(file_name))
 
@@ -54,14 +54,14 @@ class FTP(object):
         if file_name in self.dir_list:
             try:
                 self.ftp.retrbinary('RETR {}'.format(file_name), open(file_name, 'wb').write)
-                print('download: [Success] {}'.format(self.pwd() + file_name))
+                print('download: [Success] {}'.format(self.current() + file_name))
             except:
                 try:
                     os.remove(file_name)
                     os.mkdir(file_name)
                 except:
                     pass
-                pwd = self.pwd()
+                pwd = self.current()
                 self.cd(file_name)
                 os.chdir(file_name)
                 for i in self.dir_list:
@@ -69,41 +69,44 @@ class FTP(object):
                 self.cd(pwd)
                 os.chdir('../')
         else:
-            print('download: [Error] {}'.format(self.pwd() + file_name))
+            print('download: [Error] {}'.format(self.current() + file_name))
 
-    def pwd(self):
+    def current(self):
         path = self.ftp.pwd()
         return path if path == '/' else path + '/'
+
+    def pwd(self):
+        print(self.ftp.pwd())
 
     def cd(self, dir_name):
         try:
             self.ftp.cwd(dir_name)
             self.set_dir()
         except:
-            print('cd: [Error] {}'.format(self.pwd() + dir_name))
+            print('cd: [Error] {}'.format(self.current() + dir_name))
 
     def mkdir(self, dir_name):
         if not dir_name in self.dir_list:
             self.ftp.mkd(dir_name)
             self.set_dir()
         else:
-            print('mkdir: [Error] {}'.format(self.pwd() + dir_name))
+            print('mkdir: [Error] {}'.format(self.current() + dir_name))
 
     def rm(self, file_name):
         if file_name in self.dir_list:
             try:
                 self.ftp.delete(file_name)
-                print('rm <file>: [Success] {}'.format(self.pwd() + file_name))
+                print('rm <file>: [Success] {}'.format(self.current() + file_name))
             except:
                 self.cd(file_name)
                 for i in self.dir_list:
                     self.rm(i)
                 self.cd('..')
                 self.ftp.rmd(file_name)
-                print('rm <dir>: [Success] {}'.format(self.pwd() + file_name))
+                print('rm <dir>: [Success] {}'.format(self.current() + file_name))
             self.set_dir()
         else:
-            print('rm: [Error] {}'.format(self.pwd() + file_name))
+            print('rm: [Error] {}'.format(self.current() + file_name))
 
     def all_download(self, pass_list=[]):
         os.makedirs(self.account, exist_ok=True)
